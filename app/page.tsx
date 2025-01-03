@@ -1,14 +1,21 @@
-'use client'
-import { ConnectButton } from '@mysten/dapp-kit'
-import Image from 'next/image'
-import { getUserProfile } from '@/contracts/query'
-import { useCurrentAccount } from '@mysten/dapp-kit'
-import { useEffect, useState } from 'react'
-import { CategorizedObjects, calculateTotalBalance, formatBalance } from '@/utils/assetsHelpers'
+"use client";
+//import { ConnectButton } from "@mysten/dapp-kit";
+import Image from "next/image";
+import { getUserProfile } from "@/contracts/query";
+import { useCurrentAccount } from "@mysten/dapp-kit";
+import { useEffect, useState } from "react";
+import {
+  CategorizedObjects,
+  calculateTotalBalance,
+  formatBalance,
+} from "@/utils/assetsHelpers";
+import { okxUniversalConnectUI } from "@/contracts/OKXUniversalConnectUI";
 
 export default function Home() {
   const account = useCurrentAccount();
-  const [userObjects, setUserObjects] = useState<CategorizedObjects | null>(null);
+  const [userObjects, setUserObjects] = useState<CategorizedObjects | null>(
+    null
+  );
 
   useEffect(() => {
     async function fetchUserProfile() {
@@ -17,7 +24,7 @@ export default function Home() {
           const profile = await getUserProfile(account.address);
           setUserObjects(profile);
         } catch (error) {
-          console.error('Error fetching user profile:', error);
+          console.error("Error fetching user profile:", error);
         }
       }
     }
@@ -31,51 +38,89 @@ export default function Home() {
         <div className="flex items-center rounded-full overflow-hidden">
           <Image src="/logo/logo.jpg" alt="Sui Logo" width={80} height={40} />
         </div>
-        <ConnectButton />
+        <button
+          onClick={async () => {
+            try {
+              const session = await okxUniversalConnectUI.openModal({
+                namespaces: {
+                  sui: {
+                    chains: ["sui:mainnet"],
+                  },
+                },
+              });
+            } catch (error) {
+              console.error("Error connecting:", error);
+            }
+          }}
+        >
+          Connect
+        </button>
       </header>
-      {userObjects!=null ? (
-      <main className="flex-grow flex flex-col items-center p-8">        
-        {userObjects && (
-          <div className="w-full max-w-6xl">
-            <h2 className="text-2xl font-bold mb-4">Your Assets</h2>
-            
-            <div className="flex gap-8">
-              <div className="flex-1">
-                <h3 className="text-xl font-semibold mb-2">Coins</h3>
-                {Object.entries(userObjects.coins).map(([coinType, coins]) => {
-                  const totalBalance = calculateTotalBalance(coins);
-                  return (
-                    <div key={coinType} className="mb-4 p-4 bg-gray-100 rounded-lg">
-                      <h4 className="font-medium text-lg">{coinType.split('::').pop()}</h4>
-                      <p>Count: {coins.length}</p>
-                      <p>Total Balance: {formatBalance(totalBalance)}</p>
-                    </div>
-                  );
-                })}
-              </div>
-              
-              <div className="flex-1">
-                <h3 className="text-xl font-semibold mb-2">Other Objects</h3>
-                <div className="h-[500px] overflow-y-auto pr-4">
-                  {Object.entries(userObjects.objects).map(([objectType, objects]) => (
-                    <div key={objectType} className="mb-4 p-4 bg-gray-100 rounded-lg">
-                      <h4 className="font-medium text-lg">{objectType.split('::').pop()}</h4>
-                      <p>Count: {objects.length}</p>
-                      <p className="text-gray-500 text-sm">{objectType.split('::').pop()}</p>
-                      <p className="text-gray-500 text-sm">{objectType.split('::')[0]}</p>
-                    </div>
-                  ))}
+      {userObjects != null ? (
+        <main className="flex-grow flex flex-col items-center p-8">
+          {userObjects && (
+            <div className="w-full max-w-6xl">
+              <h2 className="text-2xl font-bold mb-4">Your Assets</h2>
+
+              <div className="flex gap-8">
+                <div className="flex-1">
+                  <h3 className="text-xl font-semibold mb-2">Coins</h3>
+                  {Object.entries(userObjects.coins).map(
+                    ([coinType, coins]) => {
+                      const totalBalance = calculateTotalBalance(coins);
+                      return (
+                        <div
+                          key={coinType}
+                          className="mb-4 p-4 bg-gray-100 rounded-lg"
+                        >
+                          <h4 className="font-medium text-lg">
+                            {coinType.split("::").pop()}
+                          </h4>
+                          <p>Count: {coins.length}</p>
+                          <p>Total Balance: {formatBalance(totalBalance)}</p>
+                        </div>
+                      );
+                    }
+                  )}
+                </div>
+
+                <div className="flex-1">
+                  <h3 className="text-xl font-semibold mb-2">Other Objects</h3>
+                  <div className="h-[500px] overflow-y-auto pr-4">
+                    {Object.entries(userObjects.objects).map(
+                      ([objectType, objects]) => (
+                        <div
+                          key={objectType}
+                          className="mb-4 p-4 bg-gray-100 rounded-lg"
+                        >
+                          <h4 className="font-medium text-lg">
+                            {objectType.split("::").pop()}
+                          </h4>
+                          <p>Count: {objects.length}</p>
+                          <p className="text-gray-500 text-sm">
+                            {objectType.split("::").pop()}
+                          </p>
+                          <p className="text-gray-500 text-sm">
+                            {objectType.split("::")[0]}
+                          </p>
+                        </div>
+                      )
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
-      </main>
-      ):(
+          )}
+        </main>
+      ) : (
         <div className="flex-grow flex flex-col items-center p-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-8">Welcome to Nextjs Sui Dapp Template</h1>
-          <h3 className="text-2xl font-bold text-gray-800 mb-8">Please connect your wallet to view your assets</h3>
-        </div>        
+          <h1 className="text-4xl font-bold text-gray-800 mb-8">
+            Welcome to Nextjs Sui Dapp Template
+          </h1>
+          <h3 className="text-2xl font-bold text-gray-800 mb-8">
+            Please connect your wallet to view your assets
+          </h3>
+        </div>
       )}
     </div>
   );
